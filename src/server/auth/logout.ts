@@ -4,12 +4,14 @@ import { lucia } from "@/lib/auth";
 import { validateRequest } from "./validateSession";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import dbConnect from "@/lib/dbConnect";
 
 export interface ActionResult {
   error: string | null;
 }
 
 export default async function logout(): Promise<ActionResult> {
+  await dbConnect();
   const { session } = await validateRequest();
   if (!session) {
     return {

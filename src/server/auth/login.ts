@@ -6,10 +6,12 @@ import { lucia } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import User from "@/models/userModel";
 import mongoConnect from "@/lib/dbConnect";
+import { LoginSchema } from "@/schemas/authSchema";
+import { z } from "zod";
 
 
-export default async function login(_: any, formData: FormData) {
-	const username = formData.get("username");
+export default async function login(_: any, values: z.infer<typeof LoginSchema>) {
+	const username = values.username
 	if (
 		typeof username !== "string" ||
 		username.length < 3 ||
@@ -20,7 +22,7 @@ export default async function login(_: any, formData: FormData) {
 			error: "Invalid username"
 		};
 	}
-	const password = formData.get("password");
+	const password = values.password;
 	if (typeof password !== "string" || password.length < 6 || password.length > 255) {
 		return {
 			error: "Invalid password"

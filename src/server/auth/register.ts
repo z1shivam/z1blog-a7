@@ -8,10 +8,13 @@ import { generateIdFromEntropySize } from "lucia";
 import mongoConnect from "@/lib/dbConnect";
 import { redirect } from "next/navigation";
 import { isRedirectError } from "next/dist/client/components/redirect";
+import { RegisterSchema } from "@/schemas/authSchema";
+import { z } from "zod";
 
-export default async function signup(_: any, formData: FormData) {
-  const username = formData.get("username");
-  const password = formData.get("password");
+export default async function signup(_: any, values: z.infer<typeof RegisterSchema>) {
+  const username = values.username;
+  const password = values.password;
+  const name = values.name;
 
   if (
     typeof username !== "string" ||
@@ -42,9 +45,7 @@ export default async function signup(_: any, formData: FormData) {
       parallelism: 1,
     });
 
-    console.log(`reached here in signup ts`);
     await mongoConnect();
-    console.log(`reached here in signup ts`);
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
@@ -54,16 +55,13 @@ export default async function signup(_: any, formData: FormData) {
     }
 
     const userId = generateIdFromEntropySize(10);
-    console.log({
-      _id: userId,
-      username: username,
-      password_hash: passwordHash,
-    });
 
     await User.create({
       _id: userId,
+      name: name,
       username: username,
-      password_hash: passwordHash,
+      passwordHash: passwordHash,
+      profileImage: ""
     });
 
     const session = await lucia.createSession(userId, {});
