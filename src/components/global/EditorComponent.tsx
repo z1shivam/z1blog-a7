@@ -1,26 +1,35 @@
 "use client";
 
-import { MDXEditor, MDXEditorMethods, headingsPlugin, listsPlugin, quotePlugin, thematicBreakPlugin } from "@mdxeditor/editor";
-import { FC } from "react";
+import React, { useCallback, useMemo, useState } from "react";
+import dynamic from 'next/dynamic';
+import "easymde/dist/easymde.min.css";
 
-interface EditorProps {
-  markdown: string;
-  editorRef?: React.MutableRefObject<MDXEditorMethods | null>;
-}
+// Dynamically import SimpleMdeReact
+const SimpleMdeReact = dynamic(() => import("react-simplemde-editor"), {
+  ssr: false,
+});
 
-/**
- * Extend this Component further with the necessary plugins or props you need.
- * proxying the ref is necessary. Next.js dynamically imported components don't support refs.
- */
-const Editor: FC<EditorProps> = ({ markdown, editorRef }) => {
+const EditorComponent = () => {
+  const [value, setValue] = useState("Initial");
+
+  const onChange = useCallback((value: string) => {
+    setValue(value);
+  }, []);
+
+  const autofocusNoSpellcheckerOptions = useMemo(() => {
+    return {
+      autofocus: true,
+      spellChecker: true,
+    };
+  }, []);
+
   return (
-    <MDXEditor
-      onChange={(e) => console.log(e)}
-      ref={editorRef}
-      markdown={markdown}
-      plugins={[headingsPlugin(), listsPlugin(), quotePlugin(), thematicBreakPlugin()]}
+    <SimpleMdeReact
+      options={autofocusNoSpellcheckerOptions}
+      value={value}
+      onChange={onChange}
     />
   );
 };
 
-export default Editor;
+export default EditorComponent;

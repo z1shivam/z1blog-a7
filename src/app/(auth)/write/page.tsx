@@ -1,6 +1,9 @@
+import EditorComponent  from "@/components/global/EditorComponent";
 
 export default function WritePage() {
   return (
-    <div>write page</div>   
+    <div>
+      <EditorComponent />
+    </div>
   );
 }
