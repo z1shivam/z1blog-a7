@@ -5,7 +5,7 @@ import logout from "@/server/auth/logout";
 
 export default function DashboardPage() {
   return (
-    <div>
+    <div className="p-4">
       Dashboard page!!
       <div>
         <Button onClick={async()=>{ await logout()}}>
