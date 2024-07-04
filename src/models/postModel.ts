@@ -49,11 +49,11 @@ const PostSchema: Schema = new Schema(
       type: Number,
       default: 0,
     },
-    category: {
+    categories: [{
       type: Schema.Types.ObjectId,
       ref: "Category",
       required: true,
-    },
+    }],
   },
   { timestamps: true },
 );

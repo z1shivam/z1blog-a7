@@ -9,6 +9,6 @@ export const contentSchema = z.object({
   featuredImage: z.string().trim().optional(),
   author: z.string().trim(),
   slug: z.string().trim(),
-  mdxContent: z.string().min(1, { message: "Content can not be empty!" }),
-  category: z.string(),
+  mdxContent: z.string(),
+  categories: z.array(z.string()),
 });

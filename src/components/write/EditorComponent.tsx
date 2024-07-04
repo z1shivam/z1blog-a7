@@ -1,19 +1,18 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, forwardRef, useImperativeHandle, useRef } from "react";
 import dynamic from 'next/dynamic';
 import "easymde/dist/easymde.min.css";
 
-// Dynamically import SimpleMdeReact
 const SimpleMdeReact = dynamic(() => import("react-simplemde-editor"), {
   ssr: false,
 });
 
-const EditorComponent = () => {
-  const [value, setValue] = useState("Initial");
+const EditorComponent = forwardRef((props, ref) => {
+  const valueRef = useRef("");
 
   const onChange = useCallback((value: string) => {
-    setValue(value);
+    valueRef.current = value;
   }, []);
 
   const autofocusNoSpellcheckerOptions = useMemo(() => {
@@ -23,13 +22,35 @@ const EditorComponent = () => {
     };
   }, []);
 
+  useImperativeHandle(ref, () => ({
+    getValue: () => valueRef.current,
+    setValue: (newValue: string) => {
+      valueRef.current = newValue;
+      if (editorInstanceRef.current) {
+        // TypeScript fix: ensure correct type
+        (editorInstanceRef.current as any).value(newValue);
+      }
+    },
+  }));
+
+  const editorInstanceRef = useRef<any>(null); 
+
+  const handleEditorInstance = (instance: any) => {
+    editorInstanceRef.current = instance;
+    if (valueRef.current) {
+      instance.value(valueRef.current);
+    }
+  };
+
   return (
     <SimpleMdeReact
       options={autofocusNoSpellcheckerOptions}
-      value={value}
+      value={valueRef.current}
       onChange={onChange}
+      getMdeInstance={handleEditorInstance}
+      placeholder="Write something here..."
     />
   );
-};
+});
 
 export default EditorComponent;
