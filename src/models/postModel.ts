@@ -1,16 +1,20 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 import { ICategory } from "./categoryModel";
-import { string } from "zod";
 
 export interface IPost extends Document {
   title: string;
+  featuredImage: string;
   content: string;
   viewCount: number;
   likeCount: number;
-  category: ICategory["_id"];
+  author: string;
+  slug: string;
+  htmlContent: string;
+  mdxContent: string;
+  categories: ICategory[];
 }
 
-const PostSchema: Schema = new Schema(
+const PostSchema = new Schema(
   {
     title: {
       type: String,
@@ -23,7 +27,7 @@ const PostSchema: Schema = new Schema(
       trim: true,
     },
     author: {
-      type: string,
+      type: String,
       required: true,
       trim: true,
     },
@@ -49,16 +53,16 @@ const PostSchema: Schema = new Schema(
       type: Number,
       default: 0,
     },
-    categories: [{
-      type: Schema.Types.ObjectId,
-      ref: "Category",
-      required: true,
-    }],
+    categories: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Category",
+        required: true,
+      },
+    ],
   },
-  { timestamps: true },
+  { timestamps: true }
 );
-
-PostSchema.index({ title: "text", content: "text" });
 
 const Post: Model<IPost> =
   mongoose.models?.Post || mongoose.model<IPost>("Post", PostSchema);
