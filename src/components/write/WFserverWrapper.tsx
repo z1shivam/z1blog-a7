@@ -3,6 +3,7 @@ import Category from "@/models/categoryModel";
 import { WriteForm } from "./WritingForm";
 import { validateRequest } from "@/server/auth/validateSession";
 import { redirect } from 'next/navigation'
+import { WriteForm2 } from "./writingForm2";
 
 export default async function WriteFormServerWrapper() {
   const { user } = await validateRequest();
@@ -16,5 +17,5 @@ export default async function WriteFormServerWrapper() {
     categoryOptions.push({ label: category.name, value: String(category._id)}),
   );
 
-  return <WriteForm initialCategories={categoryOptions}/>;
+  return <WriteForm2 initialCategories={categoryOptions}/>;
 }

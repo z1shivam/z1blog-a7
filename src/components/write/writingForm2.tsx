@@ -18,13 +18,16 @@ import { createCategoryIfNotExist } from "@/server/actions/createCategories";
 import { savePost } from "@/server/actions/savepost";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { micromark } from "micromark";
-import { RefObject, useRef, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import React, { RefObject, useRef, useState, useTransition } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaRegImage } from "react-icons/fa";
 import { MultiSelect } from "react-multi-select-component";
 import { z } from "zod";
 import EditorComponent from "./EditorComponent";
+import { ErrorToast } from "../global/ErrorToast";
+import { SuccessToast } from "../global/SuccessToast";
+import { uploadImage } from "@/server/actions/imageUpload";
 
 interface WriteFormProps {
   initialCategories: { label: string; value: string }[];
@@ -47,6 +50,8 @@ interface FeaturedImageFormProps {
   featuredImage: string;
   isPending: boolean;
   clearFeaturedImage: () => void;
+  handleUrlChange: (url: string) => void;
+  handleFileUpload: SubmitHandler<z.infer<typeof featuredImageFormSchema>>;
 }
 
 const FeaturedImageForm: React.FC<FeaturedImageFormProps> = ({
@@ -54,6 +59,8 @@ const FeaturedImageForm: React.FC<FeaturedImageFormProps> = ({
   featuredImage,
   isPending,
   clearFeaturedImage,
+  handleUrlChange,
+  handleFileUpload,
 }) => {
   const featuredImageForm = useForm<z.infer<typeof featuredImageFormSchema>>({
     resolver: zodResolver(featuredImageFormSchema),
@@ -64,10 +71,19 @@ const FeaturedImageForm: React.FC<FeaturedImageFormProps> = ({
 
   return (
     <Form {...featuredImageForm}>
-      
-      <form className="flex w-full justify-between gap-4 pb-4">
+      <form
+        className="flex w-full justify-between gap-4 pb-4"
+        onSubmit={featuredImageForm.handleSubmit(handleFileUpload)}
+      >
         <div className="aspect-video w-1/2 rounded-md">
-          {featuredImage ? <img src="#" /> : <ImagePlaceHolder />}
+          {featuredImage ? (
+            <img
+              src={featuredImage}
+              className="aspect-video w-full rounded-md object-cover"
+            />
+          ) : (
+            <ImagePlaceHolder />
+          )}
         </div>
         <div className="w-1/2 space-y-3">
           <FormField
@@ -81,21 +97,34 @@ const FeaturedImageForm: React.FC<FeaturedImageFormProps> = ({
                     placeholder="Enter the URL of the image.."
                     {...field}
                     disabled={isPending}
+                    value={featuredImage}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleUrlChange(e.target.value);
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-         <p className="text-center text-sm text-gray-500">or, upload from device</p>
+          <p className="text-center text-sm text-gray-500">
+            or, upload from device
+          </p>
           <input
             type="file"
             accept="image/*"
+            name="imageToUpload"
             ref={fileInputRef}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-2 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-indigo-100 file:border-gray-300"
+            className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-2 file:border-gray-300 file:bg-gray-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-gray-700 hover:file:bg-indigo-100"
           />
           <div className="flex justify-between gap-4">
-            <Button className="flex-grow" type="submit">Upload</Button>
+            <Button className="flex-grow" type="submit">
+              {isPending && (
+                <AiOutlineLoading3Quarters className="mx-3 h-4 w-4 animate-spin" />
+              )}
+              Upload
+            </Button>
             <Button
               variant={"destructive"}
               className="flex-grow"
@@ -111,7 +140,7 @@ const FeaturedImageForm: React.FC<FeaturedImageFormProps> = ({
   );
 };
 
-export const WriteForm: React.FC<WriteFormProps> = ({
+export const WriteForm2: React.FC<WriteFormProps> = ({
   initialCategories,
   initialContent,
 }) => {
@@ -127,7 +156,9 @@ export const WriteForm: React.FC<WriteFormProps> = ({
     },
   });
 
-  const [featuredImage, setfeaturedImage] = useState<string>("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [featuredImage, setFeaturedImage] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<EditorComponentHandle>(null);
   const [selected, setSelected] = useState<
@@ -144,17 +175,46 @@ export const WriteForm: React.FC<WriteFormProps> = ({
   const removeLineBreaks = (input: string) => input.replace(/\n/g, "");
 
   const clearFeaturedImage = () => {
-    setfeaturedImage("");
+    setFeaturedImage("");
     if (fileInputRef.current) {
       fileInputRef.current.value = ""; // Clear the input value
     }
+  };
+
+  const handleUrlChange = (url: string) => {
+    setFeaturedImage(url);
+  };
+
+  const handleFileUpload: SubmitHandler<
+    z.infer<typeof featuredImageFormSchema>
+  > = (data) => {
+    startTransition(async () => {
+      if (fileInputRef.current && fileInputRef.current.files?.length) {
+        const file = fileInputRef.current.files[0] as File;
+        console.log(file);
+        const formdata = new FormData();
+        formdata.append("imageToUpload", file);
+   
+        const uploadedImage = await uploadImage(formdata);
+        setFeaturedImage(uploadedImage.url);
+        {
+          uploadedImage?.success && setSuccess(uploadedImage.success);
+        }
+        {
+          uploadedImage?.error && setError(uploadedImage.error);
+        }
+        fileInputRef.current.value = ""; // Clear the input value
+      } else if (data.featuredImageUrl) {
+        setFeaturedImage(data.featuredImageUrl);
+      }
+    });
   };
 
   const onSubmit = (values: z.infer<typeof contentSchema>) => {
     startTransition(async () => {
       const correctCategoryArray = await createCategoryIfNotExist(selected);
       const selectedCategories: string[] = correctCategoryArray.map(
-        (item) => item.value
+        (item) => item.value,
       );
 
       const post = {
@@ -164,13 +224,13 @@ export const WriteForm: React.FC<WriteFormProps> = ({
         author: values.author,
         mdxContent: editorRef.current?.getValue() as string,
         htmlContent: removeLineBreaks(
-          micromark(editorRef.current?.getValue() as string)
+          micromark(editorRef.current?.getValue() as string),
         ),
-        featuredImage: values.featuredImage as string,
+        featuredImage: featuredImage as string,
       };
 
       savePost(post).then(() => {
-        form.reset();
+        // form.reset();
       });
     });
   };
@@ -182,7 +242,13 @@ export const WriteForm: React.FC<WriteFormProps> = ({
         featuredImage={featuredImage}
         isPending={isPending}
         clearFeaturedImage={clearFeaturedImage}
+        handleUrlChange={handleUrlChange}
+        handleFileUpload={handleFileUpload}
       />
+      <div className="pb-4">
+        <ErrorToast message={error} />
+        <SuccessToast message={success} />
+      </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -278,7 +344,7 @@ export const WriteForm: React.FC<WriteFormProps> = ({
             {isPending && (
               <AiOutlineLoading3Quarters className="mx-3 h-4 w-4 animate-spin" />
             )}
-            Submit
+            Publish
           </Button>
         </form>
       </Form>

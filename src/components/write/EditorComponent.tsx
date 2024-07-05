@@ -24,7 +24,7 @@ const EditorComponent = forwardRef(
 
     const autofocusNoSpellcheckerOptions = useMemo(() => {
       return {
-        autofocus: true,
+        autofocus: false,
         spellChecker: true,
       };
     }, []);
