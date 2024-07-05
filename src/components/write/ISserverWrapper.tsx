@@ -23,7 +23,7 @@ export default async function ImageStoreServerWrapper() {
       size: image.bytes
     }));
 
-    console.log({ imageCount, imageData, rateLimitRemaining });
+    // console.log({ imageCount, imageData, rateLimitRemaining });
   } catch (error) {
     console.error('Error fetching images:', error);
   }

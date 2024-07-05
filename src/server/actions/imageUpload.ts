@@ -29,7 +29,7 @@ export async function uploadImage(formdata: FormData): Promise<{
     }>((resolve, reject) => {
       cloudinary.uploader
         .upload_stream({}, (err, res) => {
-          console.log(res);
+          // console.log(res);
           if (err || !res) {
             reject({ url: "", success: "", error: "Upload failed, try again" });
           } else {

@@ -191,7 +191,7 @@ export const WriteForm2: React.FC<WriteFormProps> = ({
     startTransition(async () => {
       if (fileInputRef.current && fileInputRef.current.files?.length) {
         const file = fileInputRef.current.files[0] as File;
-        console.log(file);
+        // console.log(file);
         const formdata = new FormData();
         formdata.append("imageToUpload", file);
    
