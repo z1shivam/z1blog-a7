@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  // console.log(request);
   const { pathname } = request.nextUrl;
   const isLoggedIn = request.cookies.get("auth_session");
 
@@ -11,11 +10,10 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   } else {
-    if (pathname === "/dashboard") {
+    if (pathname === "/dashboard" || pathname === "/write") {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
-
   return NextResponse.next();
 }
 
