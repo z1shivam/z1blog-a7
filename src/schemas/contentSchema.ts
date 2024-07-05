@@ -12,3 +12,7 @@ export const contentSchema = z.object({
   mdxContent: z.string(),
   categories: z.array(z.string()),
 });
+
+export const featuredImageFormSchema = z.object({
+  featuredImageUrl: z.string()
+})
