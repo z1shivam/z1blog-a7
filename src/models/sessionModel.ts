@@ -1,4 +1,10 @@
-import { Schema, model, models } from "mongoose";
+import { Model, Schema, model, models } from "mongoose";
+
+interface ISession{
+  _id: string;
+  user_id: string;
+  expires_at: Date; 
+}
 
 const sessionSchema = new Schema(
   {
@@ -18,4 +24,6 @@ const sessionSchema = new Schema(
   { _id: false },
 );
 
-const Session = models?.Session || model("User", sessionSchema);
+const Session = (models?.Session as Model<ISession>) || model("Session", sessionSchema);
+
+export default Session;

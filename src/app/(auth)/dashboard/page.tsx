@@ -2,9 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import logout from "@/server/auth/logout";
+import { logoutFromEverywhere } from "@/server/auth/logoutFromEverywhere";
 import Link from "next/link";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+
   return (
     <div className="p-4">
       Dashboard page!!
@@ -15,6 +17,13 @@ export default function DashboardPage() {
           }}
         >
           Logout
+        </Button>
+        <Button
+          onClick={async () => {
+            await logoutFromEverywhere();
+          }}
+        >
+          Logout from Everywhere
         </Button>
         <Button asChild>
           <Link href={"/write"}>Go to write</Link>

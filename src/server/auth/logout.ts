@@ -11,6 +11,7 @@ export interface ActionResult {
 }
 
 export default async function logout(): Promise<ActionResult> {
+  console.log("logout function");
   await dbConnect();
   const { session } = await validateRequest();
   if (!session) {

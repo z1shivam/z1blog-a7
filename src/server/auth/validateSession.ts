@@ -13,6 +13,7 @@ export const validateRequest = cache(
 			};
 		}
 		const result = await lucia.validateSession(sessionId);
+		console.log(result);
 		try {
 			if (result.session && result.session.fresh) {
 				const sessionCookie = lucia.createSessionCookie(result.session.id);
@@ -22,7 +23,8 @@ export const validateRequest = cache(
 				const sessionCookie = lucia.createBlankSessionCookie();
 				cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
 			}
-		} catch {}
+		} catch {
+		}
 		return result;
 	}
 );
