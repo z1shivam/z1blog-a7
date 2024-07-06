@@ -1,34 +1,15 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
-import logout from "@/server/auth/logout";
-import { logoutFromEverywhere } from "@/server/auth/logoutFromEverywhere";
-import Link from "next/link";
+import Overview from "@/components/dashboard/Overview";
+import { validateRequest } from "@/server/auth/validateSession";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-
+  const { user } = await validateRequest();
+  if (!user) {
+    return redirect("/login");
+  }
   return (
-    <div className="p-4">
-      Dashboard page!!
-      <div className="flex gap-4">
-        <Button
-          onClick={async () => {
-            await logout();
-          }}
-        >
-          Logout
-        </Button>
-        <Button
-          onClick={async () => {
-            await logoutFromEverywhere();
-          }}
-        >
-          Logout from Everywhere
-        </Button>
-        <Button asChild>
-          <Link href={"/write"}>Go to write</Link>
-        </Button>
-      </div>
+    <div className="">
+      <Overview />
     </div>
   );
 }
