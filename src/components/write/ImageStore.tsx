@@ -1,6 +1,7 @@
 "use client";
 
 import { uploadImage } from "@/server/actions/imageUpload";
+import { loadMoreImages } from "@/server/actions/loadMoreImages";
 import { FormEvent, useEffect, useState, useTransition } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaRegCopy } from "react-icons/fa";
@@ -19,15 +20,19 @@ type ImageStoreProps = {
   imageCount: number;
   imageData: ImageData[];
   rateLimitRemaining: number;
+  nextCursorId: string;
 };
 
 const ImageStore: React.FC<ImageStoreProps> = ({
   imageCount,
   imageData,
   rateLimitRemaining,
+  nextCursorId,
 }) => {
   const [numberOfImages, setNumberOfImages] = useState<number>(imageCount);
+  const [nextCursor, setNextCursor] = useState<string>(nextCursorId);
   const [isPending, startTransition] = useTransition();
+  const [isLoading, startLoading] = useTransition();
   const [imageArray, setImageArray] = useState<ImageData[]>(imageData);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -39,8 +44,8 @@ const ImageStore: React.FC<ImageStoreProps> = ({
   }, [rateLimitRemaining]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); 
-    const formData = new FormData(event.currentTarget); 
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     setError("");
     setSuccess("");
     startTransition(() => {
@@ -50,7 +55,7 @@ const ImageStore: React.FC<ImageStoreProps> = ({
             url: data.url,
             width: data.width,
             height: data.height,
-            size: data.size, 
+            size: data.size,
           };
           setImageArray((prevArray) => [newImage, ...prevArray]);
           setNumberOfImages((p) => p + 1);
@@ -58,6 +63,17 @@ const ImageStore: React.FC<ImageStoreProps> = ({
         }
         data?.error && setError(data.error);
       });
+    });
+  };
+
+  const handleLoadmore = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+    startLoading(async () => {
+      const { newImages, nextCursorId } = await loadMoreImages(nextCursor);
+      setImageArray((prevArray) => [...prevArray, ...newImages]);
+      setNextCursor(nextCursorId);
     });
   };
 
@@ -113,19 +129,26 @@ const ImageStore: React.FC<ImageStoreProps> = ({
               className="aspect-video cursor-pointer rounded-md border border-gray-300 object-cover"
               onClick={() => handleImageClick(image.url)}
             />
-            <div className="absolute top-0 flex h-full w-full items-center justify-center rounded-md bg-black/50 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100">
+            <div className="absolute top-0 flex h-full w-full items-center justify-center rounded-md bg-black/50 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               <FaRegCopy className="mr-2 size-5" /> Copy URL
             </div>
           </div>
         ))}
       </div>
-      <form className="flex w-full items-center justify-center">
-        <Button>
-          {isPending && (
-            <AiOutlineLoading3Quarters className="mx-3 h-4 w-4 animate-spin" />
-          )}
-          Load More
-        </Button>
+      <form
+        className="flex w-full items-center justify-center"
+        onSubmit={handleLoadmore}
+      >
+        {nextCursor ? (
+          <Button type="submit">
+            {isLoading && (
+              <AiOutlineLoading3Quarters className="mx-3 h-4 w-4 animate-spin" />
+            )}
+            Load More
+          </Button>
+        ) : (
+          <p>No more images in store</p>
+        )}
       </form>
     </>
   );
