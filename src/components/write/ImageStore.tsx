@@ -127,9 +127,11 @@ const ImageStore: React.FC<ImageStoreProps> = ({
               width={image.width}
               height={image.height}
               className="aspect-video cursor-pointer rounded-md border border-gray-300 object-cover"
-              onClick={() => handleImageClick(image.url)}
             />
-            <div className="absolute top-0 flex h-full w-full items-center justify-center rounded-md bg-black/50 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <div
+              className="absolute top-0 flex h-full w-full items-center justify-center rounded-md bg-black/50 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+              onClick={() => handleImageClick(image.url)}
+            >
               <FaRegCopy className="mr-2 size-5" /> Copy URL
             </div>
           </div>

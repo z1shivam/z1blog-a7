@@ -31,6 +31,11 @@ const PostSchema = new Schema(
       required: true,
       trim: true,
     },
+    authorId: {
+      type: String,
+      ref: "User",
+      required: true,
+    },
     slug: {
       type: String,
       unique: true,

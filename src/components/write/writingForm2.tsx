@@ -15,7 +15,7 @@ import {
   featuredImageFormSchema,
 } from "@/schemas/contentSchema";
 import { createCategoryIfNotExist } from "@/server/actions/createCategories";
-import { savePost } from "@/server/actions/savepost";
+import { createPost } from "@/server/actions/createPost";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { micromark } from "micromark";
 import React, { RefObject, useRef, useState, useTransition } from "react";
@@ -28,6 +28,7 @@ import EditorComponent from "./EditorComponent";
 import { ErrorToast } from "../global/ErrorToast";
 import { SuccessToast } from "../global/SuccessToast";
 import { uploadImage } from "@/server/actions/imageUpload";
+import { validateRequest } from "@/server/auth/validateSession";
 
 interface WriteFormProps {
   initialCategories: { label: string; value: string }[];
@@ -194,7 +195,7 @@ export const WriteForm2: React.FC<WriteFormProps> = ({
         // console.log(file);
         const formdata = new FormData();
         formdata.append("imageToUpload", file);
-   
+
         const uploadedImage = await uploadImage(formdata);
         setFeaturedImage(uploadedImage.url);
         {
@@ -216,7 +217,6 @@ export const WriteForm2: React.FC<WriteFormProps> = ({
       const selectedCategories: string[] = correctCategoryArray.map(
         (item) => item.value,
       );
-
       const post = {
         title: values.title,
         slug: values.slug,
@@ -229,7 +229,7 @@ export const WriteForm2: React.FC<WriteFormProps> = ({
         featuredImage: featuredImage as string,
       };
 
-      savePost(post).then(() => {
+      createPost(post).then(() => {
         // form.reset();
       });
     });
