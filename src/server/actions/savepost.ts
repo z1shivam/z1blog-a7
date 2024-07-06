@@ -11,7 +11,7 @@ interface IPostInput {
   slug: string;
   mdxContent: string;
   htmlContent: string;
-  categories: string[]; // Use `categories` to match the schema
+  categories: string[];
 }
 
 
@@ -19,7 +19,6 @@ interface IPostInput {
 export async function savePost(input: IPostInput) {
   try {
     await dbConnect();
-    // Ensure the category IDs are valid MongoDB ObjectIDs
     const categoryIds = input.categories.map(
       (id) => new mongoose.Types.ObjectId(id),
     );
@@ -31,7 +30,7 @@ export async function savePost(input: IPostInput) {
       slug: input.slug,
       mdxContent: input.mdxContent,
       htmlContent: input.htmlContent,
-      categories: categoryIds, // Correct the field name to `categories`
+      categories: categoryIds, 
     });
 
     return { success: "Post created successfully" };
